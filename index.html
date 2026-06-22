@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Annoying Are You?</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    .page.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .intro-text {
+      font-size: 1.1rem;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
+    .intro-text .laugh {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 15px;
+    }
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 40px;
+      font-size: 1.1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .question {
+      text-align: left;
+      margin-bottom: 30px;
+    }
+    .question h2 {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .question .q-number {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 32px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .options {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    .options button {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: #555;
+    }
+    .options button:hover {
+      border-color: #667eea;
+      color: #667eea;
+      background: #f0f2ff;
+    }
+    .options button.selected {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+    .result {
+      padding: 20px 0;
+    }
+    .result h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .result .sub {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 25px;
+    }
+    .confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      top: -20px;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(720deg) scale(0.5);
+        opacity: 0;
+      }
+    }
+    .celebration {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+    .score-text {
+      font-size: 1.2rem;
+      color: #555;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="page active" id="pageIntro">
+    <h1>😏 How Annoying Are You?</h1>
+    <div class="intro-text">
+      <span class="laugh">😄</span>
+      Don't worry, I'm not going to steal your information... haha.<br>
+      This is just a <strong>"How Annoying Are You?"</strong> test.<br>
+
+    </div>
+    <button class="btn" onclick="startTest()">Start the Test</button>
+  </div>
+
+  <div class="page" id="pageQuestion">
+    <div id="questionContainer"></div>
+  </div>
+
+  <div class="page" id="pageResult">
+    <div id="resultContainer"></div>
+  </div>
+</div>
+
+<div id="confettiContainer" class="confetti-container"></div>
+
+<script>
+  const questions = [
+    {
+      text: "Do I hurt myself without even realizing it?",
+      yesIsAnnoying: true
+    },
+    {
+      text: "Do I judge people based on their phenotype? (e.g. short vs tall)",
+      yesIsAnnoying: true
+    },
+    {
+      text: "Have I ever said \"Yeah I can speak English blablabla\" while drinking at Barge?",
+      yesIsAnnoying: true
+    }
+  ];
+
+  let currentQuestion = 0;
+  let answers = [];
+
+  function startTest() {
+    currentQuestion = 0;
+    answers = [];
+    showPage('pageIntro', 'pageQuestion');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[currentQuestion];
+    const container = document.getElementById('questionContainer');
+    container.innerHTML = `
+      <div class="question">
+        <h2><span class="q-number">${currentQuestion + 1}</span>${q.text}</h2>
+        <div class="options">
+          <button class="btn-option" data-value="yes" onclick="selectAnswer('yes')">✅ Yes</button>
+          <button class="btn-option" data-value="no" onclick="selectAnswer('no')">❌ No</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function selectAnswer(value) {
+    answers[currentQuestion] = value;
+    document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.btn-option[data-value="${value}"]`).classList.add('selected');
+    setTimeout(nextQuestion, 300);
+  }
+
+  function nextQuestion() {
+    if (answers[currentQuestion] === undefined) {
+      alert('Please select an answer!');
+      return;
+    }
+    currentQuestion++;
+    if (currentQuestion < questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function prevQuestion() {
+    if (currentQuestion > 0) {
+      currentQuestion--;
+      renderQuestion();
+      if (answers[currentQuestion] !== undefined) {
+        document.querySelector(`.btn-option[data-value="${answers[currentQuestion]}"]`)?.classList.add('selected');
+      }
+    }
+  }
+
+  function showPage(hide, show) {
+    document.getElementById(hide).classList.remove('active');
+    document.getElementById(show).classList.add('active');
+  }
+
+  function showResult() {
+    const yesCount = answers.filter(a => a === 'yes').length;
+    const total = questions.length;
+    const annoying = yesCount >= 2;
+
+    const resultContainer = document.getElementById('resultContainer');
+
+    if (annoying) {
+      launchConfetti();
+      resultContainer.innerHTML = `
+        <div class="result">
+          <div class="celebration">🎉🎊🎉</div>
+          <h1>Congratulations!</h1>
+          <p class="sub">You are the MOST ANNOYING person! 🏆</p>
+          <div class="score-text">${yesCount} / ${total} annoying answers</div>
+          <p style="color:#888; margin-top: 10px;">Your friends definitely talk about you behind your back.</p>
+          <button class="btn" onclick="resetQuiz()" style="margin-top:25px;">Try Again</button>
+        </div>
+      `;
+    } else {
+      resultContainer.innerHTML = `
+        <div class="result">
+          <h1>😌 You're fine...</h1>
+          <p class="sub">I guess you're not that annoying. For now.</p>
+          <div class="score-text">${yesCount} / ${total} annoying answers</div>
+          <p style="color:#888; margin-top: 10px;">There's still time to work on it.</p>
+          <button class="btn" onclick="resetQuiz()" style="margin-top:25px;">Try Again</button>
+        </div>
+      `;
+    }
+
+    showPage('pageQuestion', 'pageResult');
+  }
+
+  function resetQuiz() {
+    document.getElementById('confettiContainer').innerHTML = '';
+    showPage('pageResult', 'pageIntro');
+  }
+
+  function launchConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6b9d', '#c084fc', '#fb923c'];
+    const shapes = ['■', '●', '▲', '★', '♦'];
+
+    for (let i = 0; i < 120; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+      el.style.left = Math.random() * 100 + '%';
+      el.style.color = colors[Math.floor(Math.random() * colors.length)];
+      el.style.fontSize = (Math.random() * 16 + 10) + 'px';
+      el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      el.style.animationDelay = (Math.random() * 2) + 's';
+      container.appendChild(el);
+    }
+
+    setTimeout(() => {
+      container.innerHTML = '';
+    }, 5000);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('pageQuestion').classList.contains('active')) {
+      if (e.key === 'Enter' || e.key === 'ArrowRight') nextQuestion();
+      if (e.key === 'ArrowLeft') prevQuestion();
+    }
+  });
+</script>
+
+<br><br>
+<div style="text-align:center; color:#666; font-size:0.8rem;">
+  <a href="#" onclick="showAdmin()" style="color:#999; text-decoration:none;">.</a>
+</div>
+
+</body>
+</html>
